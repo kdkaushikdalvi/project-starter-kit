@@ -205,7 +205,7 @@ export default function PdfPage({ pageNumber }) {
           }}
         >
           {currentStep === 2 && (
-            <div className="absolute -top-3 -right-3 hidden group-hover:flex">
+            <div className="absolute -top-3 -right-3 flex">
               <button
                 onClick={() =>
                   setBlocks((prev) => prev.filter((b) => b.id !== block.id))
