@@ -16,8 +16,8 @@ export async function submitSignedDocument(payload) {
   return response;
 }
 
-export async function getDocumentsList() {
-  const response = await fetch(`${API_BASE_URL}/list`, {
+export async function getDocumentsByUserId(userId) {
+  const response = await fetch(`${API_BASE_URL}/api/documents/user/${userId}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -28,5 +28,5 @@ export async function getDocumentsList() {
     throw new Error(`API call failed: ${response.status} ${response.statusText}`);
   }
 
-  return response;
+  return response.json();
 }
