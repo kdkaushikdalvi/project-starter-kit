@@ -6,34 +6,21 @@ import { useSignature } from "../context/SignatureContext";
 import { X, PenTool, Type, Upload } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-interface PdfPageProps {
-  pageNumber: number;
-}
-
-interface DraftBlock {
-  startX: number;
-  startY: number;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-export default function PdfPage({ pageNumber }: PdfPageProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const signaturePadRef = useRef<SignatureCanvas>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+export default function PdfPage({ pageNumber }) {
+  const containerRef = useRef(null);
+  const signaturePadRef = useRef(null);
+  const fileInputRef = useRef(null);
   const { blocks, setBlocks, currentStep, signatures, setSignatures } =
     useSignature();
 
-  const [draft, setDraft] = useState<DraftBlock | null>(null);
-  const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
+  const [draft, setDraft] = useState(null);
+  const [activeBlockId, setActiveBlockId] = useState(null);
   const [typedSignature, setTypedSignature] = useState("");
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [uploadedImage, setUploadedImage] = useState(null);
 
   const pageBlocks = blocks.filter((b) => b.pageNumber === pageNumber);
 
-  function getRelativePoint(e: React.MouseEvent): { x: number; y: number } {
+  function getRelativePoint(e) {
     if (!containerRef.current) return { x: 0, y: 0 };
     const rect = containerRef.current.getBoundingClientRect();
     return { x: e.clientX - rect.left, y: e.clientY - rect.top };
@@ -81,11 +68,11 @@ export default function PdfPage({ pageNumber }: PdfPageProps) {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith("image/")) {
       const reader = new FileReader();
-      reader.onload = (ev) => setUploadedImage(ev.target?.result as string);
+      reader.onload = (ev) => setUploadedImage(ev.target?.result);
       reader.readAsDataURL(file);
     }
   };
@@ -105,7 +92,7 @@ export default function PdfPage({ pageNumber }: PdfPageProps) {
       }`}
       onMouseDown={(e) => {
         if (currentStep !== 2) return;
-        if ((e.target as HTMLElement).closest(".react-draggable")) return;
+        if (e.target.closest(".react-draggable")) return;
 
         const p = getRelativePoint(e);
         setDraft({

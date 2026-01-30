@@ -11,9 +11,9 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 
 if (typeof Promise !== "undefined" && !("withResolvers" in Promise)) {
-  (Promise as any).withResolvers = function () {
-    let resolve: any;
-    let reject: any;
+  Promise.withResolvers = function () {
+    let resolve;
+    let reject;
     const promise = new Promise((res, rej) => {
       resolve = res;
       reject = rej;
