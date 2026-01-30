@@ -3,6 +3,8 @@ import { useSignature } from "../context/SignatureContext";
 import { FilePicker } from "../components/FilePicker";
 import PdfViewer from "../components/PdfViewer";
 import { PDFDocument } from "pdf-lib";
+import { toast } from "sonner";
+import { submitSignedDocument, DocumentPayload } from "../api/services";
 import {
   PenLine,
   ArrowRight,
@@ -10,6 +12,7 @@ import {
   Download,
   Mail,
   MousePointer,
+  Loader2,
 } from "lucide-react";
 
 export default function Home() {
@@ -23,6 +26,7 @@ export default function Home() {
   } = useSignature();
 
   const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFileSelect = (file: File) => setPdfFile(file);
   const handleFileClear = () => setPdfFile(null);
@@ -33,41 +37,106 @@ export default function Home() {
   const downloadSignedPdf = async () => {
     if (!pdfFile) return;
 
-    const existingPdfBytes = await pdfFile.arrayBuffer();
-    const pdfDoc = await PDFDocument.load(existingPdfBytes);
-    const pages = pdfDoc.getPages();
+    setIsSubmitting(true);
 
-    for (const block of blocks) {
-      const signatureDataUrl = signatures[block.id];
-      if (!signatureDataUrl) continue;
+    try {
+      const existingPdfBytes = await pdfFile.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(existingPdfBytes);
+      const pages = pdfDoc.getPages();
 
-      const page = pages[block.pageNumber - 1];
-      const { width, height } = page.getSize();
+      for (const block of blocks) {
+        const signatureDataUrl = signatures[block.id];
+        if (!signatureDataUrl) continue;
 
-      const signatureImageBytes = await fetch(signatureDataUrl).then((r) =>
-        r.arrayBuffer(),
-      );
-      const signatureImage = await pdfDoc.embedPng(signatureImageBytes);
+        const page = pages[block.pageNumber - 1];
+        const { width, height } = page.getSize();
 
-      const scale = width / 612;
+        const signatureImageBytes = await fetch(signatureDataUrl).then((r) =>
+          r.arrayBuffer(),
+        );
+        const signatureImage = await pdfDoc.embedPng(signatureImageBytes);
 
-      page.drawImage(signatureImage, {
-        x: block.x * scale,
-        y: height - (block.y + block.height) * scale,
-        width: block.width * scale,
-        height: block.height * scale,
+        const scale = width / 612;
+
+        page.drawImage(signatureImage, {
+          x: block.x * scale,
+          y: height - (block.y + block.height) * scale,
+          width: block.width * scale,
+          height: block.height * scale,
+        });
+      }
+
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([new Uint8Array(pdfBytes)], {
+        type: "application/pdf",
       });
-    }
+      const url = URL.createObjectURL(blob);
 
-    const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([new Uint8Array(pdfBytes)], {
-      type: "application/pdf",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `signed_${pdfFile.name}`;
-    link.click();
+      // Create document ID
+      const documentId = crypto.randomUUID();
+      const userId = crypto.randomUUID();
+      const now = new Date().toISOString();
+
+      // Prepare API payload
+      const payload: DocumentPayload = {
+        document: {
+          id: documentId,
+          user_id: userId,
+          name: pdfFile.name,
+          file_url: url,
+          num_pages: pages.length,
+          status: "signed",
+          submission_type: "browser",
+          recipient_email: email || "",
+          created_at: now,
+          updated_at: now,
+          signed_at: now,
+          signed_file_url: url,
+        },
+        signatureField: {
+          id: crypto.randomUUID(),
+          document_id: documentId,
+          signer_id: userId,
+          page_number: blocks[0]?.pageNumber || 1,
+          x: blocks[0]?.x || 0,
+          y: blocks[0]?.y || 0,
+          width: blocks[0]?.width || 0,
+          height: blocks[0]?.height || 0,
+          is_signed: true,
+          signature_type: "drawn",
+          signature_url: signatures[blocks[0]?.id] || "",
+          signed_at: now,
+        },
+      };
+
+      // Submit to API
+      await submitSignedDocument(payload);
+      toast.success("Document signed and submitted successfully!");
+
+      // Download the file
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `signed_${pdfFile.name}`;
+      link.click();
+    } catch (error) {
+      console.error("Error submitting document:", error);
+      toast.error("Failed to submit document. Download will still proceed.");
+      
+      // Still allow download even if API fails
+      const existingPdfBytes = await pdfFile.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(existingPdfBytes);
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([new Uint8Array(pdfBytes)], {
+        type: "application/pdf",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `signed_${pdfFile.name}`;
+      link.click();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const allBlocksSigned =
@@ -124,16 +193,20 @@ export default function Home() {
           {/* Download */}
           {currentStep === 4 && (
             <button
-              disabled={!allBlocksSigned}
+              disabled={!allBlocksSigned || isSubmitting}
               onClick={downloadSignedPdf}
               className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition ${
-                allBlocksSigned
+                allBlocksSigned && !isSubmitting
                   ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md"
                   : "bg-muted text-muted-foreground cursor-not-allowed"
               }`}
             >
-              <Download className="h-4 w-4" />
-              Save & Download
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4" />
+              )}
+              {isSubmitting ? "Submitting..." : "Save & Download"}
             </button>
           )}
         </div>
