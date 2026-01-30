@@ -5,7 +5,12 @@ import PdfViewer from "../components/PdfViewer";
 import { PDFDocument } from "pdf-lib";
 import { PenLine, ArrowRight, Check, Download, Mail, MousePointer } from "lucide-react";
 import { toast } from "react-toastify";
-import { submitSignedDocument, getDocumentsByUserId } from "../api/services";
+import * as services from "../api/services.js";
+
+const submitSignedDocument =
+  services.submitSignedDocument ?? services.default?.submitSignedDocument;
+const getDocumentsByUserId =
+  services.getDocumentsByUserId ?? services.default?.getDocumentsByUserId;
 
 export default function Home() {
   const { pdfFile, setPdfFile, currentStep, setCurrentStep, blocks, signatures } = useSignature();
