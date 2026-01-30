@@ -191,12 +191,12 @@ export default function PdfPage({ pageNumber }) {
               ),
             );
           }}
-          className={`group z-20 flex items-center justify-center overflow-hidden signature-block ${
+          className={`group z-20 flex items-center justify-center overflow-hidden border-2 transition-all duration-200 ${
             currentStep === 2
-              ? "signature-block-prepare"
+              ? "border-primary bg-primary/5 hover:bg-primary/10"
               : signatures[block.id]
                 ? "border-transparent bg-transparent"
-                : "signature-block-sign"
+                : "border-muted-foreground border-dashed bg-muted hover:bg-accent cursor-pointer"
           }`}
           onClick={() => {
             if (currentStep === 4 && !signatures[block.id]) {
@@ -232,8 +232,8 @@ export default function PdfPage({ pageNumber }) {
       ))}
 
       {activeBlockId && (
-        <div className="modal-overlay">
-          <div className="modal-content">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-bold text-foreground">
                 Sign Document
@@ -279,11 +279,11 @@ export default function PdfPage({ pageNumber }) {
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => signaturePadRef.current?.clear()}
-                    className="btn-ghost"
+                    className="text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg px-4 py-2 font-medium transition-colors"
                   >
                     Clear
                   </button>
-                  <button onClick={handleDrawSign} className="btn-primary">
+                  <button onClick={handleDrawSign} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-6 py-3 font-semibold transition-all duration-200 shadow-sm hover:shadow-md">
                     Apply Signature
                   </button>
                 </div>
@@ -308,14 +308,14 @@ export default function PdfPage({ pageNumber }) {
                 <div className="flex justify-end gap-3">
                   <button
                     onClick={() => setTypedSignature("")}
-                    className="btn-ghost"
+                    className="text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg px-4 py-2 font-medium transition-colors"
                   >
                     Clear
                   </button>
                   <button
                     onClick={handleTypeSign}
                     disabled={!typedSignature.trim()}
-                    className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-6 py-3 font-semibold transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Apply Signature
                   </button>
@@ -337,7 +337,7 @@ export default function PdfPage({ pageNumber }) {
                   {!uploadedImage ? (
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="dropzone dropzone-idle w-full"
+                      className="relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-12 transition-all duration-200 border-border bg-card hover:border-primary/50 cursor-pointer w-full"
                     >
                       <Upload className="h-10 w-10 text-muted-foreground" />
                       <span className="mt-3 text-sm font-medium text-muted-foreground">
@@ -363,14 +363,14 @@ export default function PdfPage({ pageNumber }) {
                       setUploadedImage(null);
                       if (fileInputRef.current) fileInputRef.current.value = "";
                     }}
-                    className="btn-ghost"
+                    className="text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg px-4 py-2 font-medium transition-colors"
                   >
                     Clear
                   </button>
                   <button
                     onClick={handleUploadSign}
                     disabled={!uploadedImage}
-                    className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-6 py-3 font-semibold transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Apply Signature
                   </button>

@@ -232,7 +232,7 @@ export default function Home() {
             {pdfFile && (
               <button
                 onClick={nextStep}
-                className="btn-primary w-full flex items-center justify-center gap-2"
+                className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-6 py-3 font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
               >
                 Continue to Prepare
                 <ArrowRight className="h-4 w-4" />
@@ -252,13 +252,13 @@ export default function Home() {
                 </p>
               </div>
               <div className="flex gap-3">
-                <button onClick={prevStep} className="btn-ghost">
+                <button onClick={prevStep} className="text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg px-4 py-2 font-medium transition-colors">
                   Back
                 </button>
                 <button
                   disabled={!blocks.length}
                   onClick={nextStep}
-                  className={`btn-primary ${
+                  className={`bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-6 py-3 font-semibold transition-all duration-200 shadow-sm hover:shadow-md ${
                     !blocks.length && "opacity-50 cursor-not-allowed"
                   }`}
                 >
@@ -267,7 +267,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="card-elevated p-8">
+            <div className="bg-card rounded-2xl border border-border shadow-sm p-8">
               <PdfViewer />
             </div>
           </div>
@@ -296,7 +296,7 @@ export default function Home() {
               </div>
             </button>
 
-            <div className="card-elevated p-6 space-y-4">
+            <div className="bg-card rounded-2xl border border-border shadow-sm p-6 space-y-4">
               <div className="flex items-center gap-2 font-semibold">
                 <Mail className="h-5 w-5" />
                 Send via Email
@@ -322,7 +322,7 @@ export default function Home() {
 
             <button
               onClick={prevStep}
-              className="w-full text-center btn-ghost"
+              className="w-full text-center text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg px-4 py-2 font-medium transition-colors"
             >
               Back to Prepare
             </button>
@@ -339,12 +339,12 @@ export default function Home() {
                   Click on the fields to sign.
                 </p>
               </div>
-              <button onClick={prevStep} className="btn-ghost">
+              <button onClick={prevStep} className="text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg px-4 py-2 font-medium transition-colors">
                 Back
               </button>
             </div>
 
-            <div className="card-elevated p-8">
+            <div className="bg-card rounded-2xl border border-border shadow-sm p-8">
               <PdfViewer />
             </div>
           </div>
