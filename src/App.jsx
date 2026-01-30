@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Toaster } from "sonner";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { SignatureProvider } from "./context/SignatureContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -9,7 +10,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <Toaster position="top-right" richColors />
+    <ToastContainer position="top-right" autoClose={3000} />
     <SignatureProvider>
       <BrowserRouter>
         <Routes>

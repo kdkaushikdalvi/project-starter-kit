@@ -3,7 +3,7 @@ import { useSignature } from "../context/SignatureContext";
 import { FilePicker } from "../components/FilePicker";
 import PdfViewer from "../components/PdfViewer";
 import { PDFDocument } from "pdf-lib";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { submitSignedDocument } from "../api/services";
 import {
   PenLine,
