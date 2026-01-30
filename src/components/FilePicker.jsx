@@ -41,7 +41,11 @@ export function FilePicker({ onFileSelect, onFileClear, selectedFile }) {
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onClick={() => !selectedFile && fileInputRef.current?.click()}
-        className={`dropzone ${selectedFile ? "dropzone-active" : "dropzone-idle"}`}
+        className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-12 transition-all duration-200 ${
+          selectedFile
+            ? "border-primary bg-accent"
+            : "border-border bg-card hover:border-primary/50 cursor-pointer"
+        }`}
       >
         <input
           type="file"

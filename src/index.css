@@ -6,81 +6,46 @@
   :root {
     --background: 210 40% 98%;
     --foreground: 215 25% 15%;
-
     --card: 0 0% 100%;
     --card-foreground: 215 25% 15%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 215 25% 15%;
-
     --primary: 239 84% 67%;
     --primary-foreground: 0 0% 100%;
-
     --secondary: 215 20% 95%;
     --secondary-foreground: 215 25% 25%;
-
     --muted: 215 20% 95%;
     --muted-foreground: 215 16% 47%;
-
     --accent: 239 84% 97%;
     --accent-foreground: 239 84% 50%;
-
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-
     --border: 215 20% 90%;
     --input: 215 20% 90%;
     --ring: 239 84% 67%;
-
     --radius: 0.75rem;
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
-
     --card: 222 47% 15%;
     --card-foreground: 210 40% 98%;
-
     --popover: 222 47% 15%;
     --popover-foreground: 210 40% 98%;
-
     --primary: 239 84% 67%;
     --primary-foreground: 0 0% 100%;
-
     --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
-
     --muted: 217 33% 17%;
     --muted-foreground: 215 20% 65%;
-
     --accent: 239 84% 20%;
     --accent-foreground: 239 84% 80%;
-
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 217 33% 17%;
     --input: 217 33% 17%;
     --ring: 239 84% 67%;
-
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -91,55 +56,5 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-  }
-}
-
-@layer components {
-  .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-6 py-3 font-semibold transition-all duration-200 shadow-sm hover:shadow-md;
-  }
-
-  .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-xl px-6 py-3 font-semibold transition-all duration-200;
-  }
-
-  .btn-ghost {
-    @apply text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg px-4 py-2 font-medium transition-colors;
-  }
-
-  .card-elevated {
-    @apply bg-card rounded-2xl border border-border shadow-sm;
-  }
-
-  .dropzone {
-    @apply relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-12 transition-all duration-200;
-  }
-
-  .dropzone-idle {
-    @apply border-border bg-card hover:border-primary/50 cursor-pointer;
-  }
-
-  .dropzone-active {
-    @apply border-primary bg-accent;
-  }
-
-  .signature-block {
-    @apply border-2 transition-all duration-200;
-  }
-
-  .signature-block-prepare {
-    @apply border-primary bg-primary/5 hover:bg-primary/10;
-  }
-
-  .signature-block-sign {
-    @apply border-muted-foreground border-dashed bg-muted hover:bg-accent cursor-pointer;
-  }
-
-  .modal-overlay {
-    @apply fixed inset-0 z-[100] flex items-center justify-center bg-foreground/50 p-4 backdrop-blur-sm;
-  }
-
-  .modal-content {
-    @apply w-full max-w-lg rounded-2xl bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200;
   }
 }
