@@ -1,14 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSignature } from "../context/SignatureContext";
 import { FilePicker } from "../components/FilePicker";
 import PdfViewer from "../components/PdfViewer";
 import { PDFDocument } from "pdf-lib";
 import { PenLine, ArrowRight, Check, Download, Mail, MousePointer } from "lucide-react";
+import { toast } from "react-toastify";
+import { submitSignedDocument, getDocumentsByUserId } from "../api/services";
 
 export default function Home() {
   const { pdfFile, setPdfFile, currentStep, setCurrentStep, blocks, signatures } = useSignature();
 
   const [email, setEmail] = useState("");
+  const [userDocuments, setUserDocuments] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch user documents on mount
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const userId = "user-123"; // Replace with actual user ID
+        const documents = await getDocumentsByUserId(userId);
+        setUserDocuments(documents);
+      } catch (error) {
+        console.error("Failed to fetch documents:", error);
+      }
+    };
+    fetchDocuments();
+  }, []);
 
   const handleFileSelect = (file) => setPdfFile(file);
   const handleFileClear = () => setPdfFile(null);
@@ -17,41 +35,63 @@ export default function Home() {
   const prevStep = () => setCurrentStep(currentStep - 1);
 
   const downloadSignedPdf = async () => {
-    if (!pdfFile) return;
+    if (!pdfFile || isSubmitting) return;
 
-    const existingPdfBytes = await pdfFile.arrayBuffer();
-    const pdfDoc = await PDFDocument.load(existingPdfBytes);
-    const pages = pdfDoc.getPages();
+    setIsSubmitting(true);
 
-    for (const block of blocks) {
-      const signatureDataUrl = signatures[block.id];
-      if (!signatureDataUrl) continue;
+    try {
+      const existingPdfBytes = await pdfFile.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(existingPdfBytes);
+      const pages = pdfDoc.getPages();
 
-      const page = pages[block.pageNumber - 1];
-      const { width, height } = page.getSize();
+      for (const block of blocks) {
+        const signatureDataUrl = signatures[block.id];
+        if (!signatureDataUrl) continue;
 
-      const signatureImageBytes = await fetch(signatureDataUrl).then((r) => r.arrayBuffer());
-      const signatureImage = await pdfDoc.embedPng(signatureImageBytes);
+        const page = pages[block.pageNumber - 1];
+        const { width, height } = page.getSize();
 
-      const scale = width / 612;
+        const signatureImageBytes = await fetch(signatureDataUrl).then((r) => r.arrayBuffer());
+        const signatureImage = await pdfDoc.embedPng(signatureImageBytes);
 
-      page.drawImage(signatureImage, {
-        x: block.x * scale,
-        y: height - (block.y + block.height) * scale,
-        width: block.width * scale,
-        height: block.height * scale,
+        const scale = width / 612;
+
+        page.drawImage(signatureImage, {
+          x: block.x * scale,
+          y: height - (block.y + block.height) * scale,
+          width: block.width * scale,
+          height: block.height * scale,
+        });
+      }
+
+      const pdfBytes = await pdfDoc.save();
+      const base64Pdf = btoa(String.fromCharCode(...new Uint8Array(pdfBytes)));
+
+      // Submit to API
+      await submitSignedDocument({
+        userId: "user-123", // Replace with actual user ID
+        fileName: pdfFile.name,
+        pdfData: base64Pdf,
+        signedAt: new Date().toISOString(),
       });
-    }
 
-    const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([new Uint8Array(pdfBytes)], {
-      type: "application/pdf",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `signed_${pdfFile.name}`;
-    link.click();
+      toast.success("Document submitted successfully!");
+
+      // Download the signed PDF
+      const blob = new Blob([new Uint8Array(pdfBytes)], {
+        type: "application/pdf",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `signed_${pdfFile.name}`;
+      link.click();
+    } catch (error) {
+      console.error("Failed to submit document:", error);
+      toast.error("Failed to submit document. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const allBlocksSigned = blocks.length > 0 && blocks.every((b) => signatures[b.id]);
