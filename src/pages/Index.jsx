@@ -4,7 +4,7 @@ import { FilePicker } from "../components/FilePicker";
 import PdfViewer from "../components/PdfViewer";
 import { PDFDocument } from "pdf-lib";
 import { toast } from "sonner";
-import { submitSignedDocument, DocumentPayload } from "../api/services";
+import { submitSignedDocument } from "../api/services";
 import {
   PenLine,
   ArrowRight,
@@ -28,7 +28,7 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleFileSelect = (file: File) => setPdfFile(file);
+  const handleFileSelect = (file) => setPdfFile(file);
   const handleFileClear = () => setPdfFile(null);
 
   const nextStep = () => pdfFile && setCurrentStep(currentStep + 1);
@@ -78,7 +78,7 @@ export default function Home() {
       const now = new Date().toISOString();
 
       // Prepare API payload
-      const payload: DocumentPayload = {
+      const payload = {
         document: {
           id: documentId,
           user_id: userId,

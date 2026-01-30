@@ -1,28 +1,22 @@
 import React, { useRef, useState } from "react";
 import { Upload, FileText } from "lucide-react";
 
-interface FilePickerProps {
-  onFileSelect: (file: File) => void;
-  onFileClear: () => void;
-  selectedFile: File | null;
-}
+export function FilePicker({ onFileSelect, onFileClear, selectedFile }) {
+  const [error, setError] = useState(null);
+  const fileInputRef = useRef(null);
 
-export function FilePicker({ onFileSelect, onFileClear, selectedFile }: FilePickerProps) {
-  const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) validateAndSelect(file);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = (e) => {
     e.preventDefault();
     const file = e.dataTransfer.files?.[0];
     if (file) validateAndSelect(file);
   };
 
-  const validateAndSelect = (file: File) => {
+  const validateAndSelect = (file) => {
     if (file.type === "application/pdf") {
       onFileSelect(file);
       setError(null);
@@ -32,9 +26,9 @@ export function FilePicker({ onFileSelect, onFileClear, selectedFile }: FilePick
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => e.preventDefault();
+  const handleDragOver = (e) => e.preventDefault();
 
-  const clearFile = (e: React.MouseEvent) => {
+  const clearFile = (e) => {
     e.stopPropagation();
     onFileClear();
     setError(null);
