@@ -4,7 +4,6 @@ import { Rnd } from "react-rnd";
 import SignatureCanvas from "react-signature-canvas";
 import { useSignature } from "../context/SignatureContext";
 import { X, PenTool, Type, Upload } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function PdfPage({ pageNumber }) {
   const containerRef = useRef(null);
@@ -17,6 +16,7 @@ export default function PdfPage({ pageNumber }) {
   const [activeBlockId, setActiveBlockId] = useState(null);
   const [typedSignature, setTypedSignature] = useState("");
   const [uploadedImage, setUploadedImage] = useState(null);
+  const [activeTab, setActiveTab] = useState("draw");
 
   const pageBlocks = blocks.filter((b) => b.pageNumber === pageNumber);
 
@@ -82,7 +82,14 @@ export default function PdfPage({ pageNumber }) {
     setUploadedImage(null);
     signaturePadRef.current?.clear();
     setActiveBlockId(null);
+    setActiveTab("draw");
   };
+
+  const tabs = [
+    { id: "draw", icon: PenTool, label: "Draw" },
+    { id: "type", icon: Type, label: "Type" },
+    { id: "upload", icon: Upload, label: "Upload" },
+  ];
 
   return (
     <div
@@ -239,23 +246,27 @@ export default function PdfPage({ pageNumber }) {
               </button>
             </div>
 
-            <Tabs defaultValue="draw" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="draw" className="flex items-center gap-2">
-                  <PenTool className="h-4 w-4" />
-                  Draw
-                </TabsTrigger>
-                <TabsTrigger value="type" className="flex items-center gap-2">
-                  <Type className="h-4 w-4" />
-                  Type
-                </TabsTrigger>
-                <TabsTrigger value="upload" className="flex items-center gap-2">
-                  <Upload className="h-4 w-4" />
-                  Upload
-                </TabsTrigger>
-              </TabsList>
+            {/* Custom Tabs */}
+            <div className="mb-4 grid grid-cols-3 gap-1 rounded-lg bg-muted p-1">
+              {tabs.map(({ id, icon: Icon, label }) => (
+                <button
+                  key={id}
+                  onClick={() => setActiveTab(id)}
+                  className={`flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all ${
+                    activeTab === id
+                      ? "bg-card text-primary shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </button>
+              ))}
+            </div>
 
-              <TabsContent value="draw" className="mt-4">
+            {/* Draw Tab */}
+            {activeTab === "draw" && (
+              <div>
                 <div className="mb-6 overflow-hidden rounded-xl border-2 border-border bg-card">
                   <SignatureCanvas
                     ref={signaturePadRef}
@@ -276,9 +287,12 @@ export default function PdfPage({ pageNumber }) {
                     Apply Signature
                   </button>
                 </div>
-              </TabsContent>
+              </div>
+            )}
 
-              <TabsContent value="type" className="mt-4">
+            {/* Type Tab */}
+            {activeTab === "type" && (
+              <div>
                 <div className="mb-6">
                   <input
                     type="text"
@@ -306,9 +320,12 @@ export default function PdfPage({ pageNumber }) {
                     Apply Signature
                   </button>
                 </div>
-              </TabsContent>
+              </div>
+            )}
 
-              <TabsContent value="upload" className="mt-4">
+            {/* Upload Tab */}
+            {activeTab === "upload" && (
+              <div>
                 <div className="mb-6">
                   <input
                     type="file"
@@ -358,8 +375,8 @@ export default function PdfPage({ pageNumber }) {
                     Apply Signature
                   </button>
                 </div>
-              </TabsContent>
-            </Tabs>
+              </div>
+            )}
           </div>
         </div>
       )}
