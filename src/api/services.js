@@ -30,3 +30,9 @@ export async function getDocumentsByUserId(userId) {
 
   return response.json();
 }
+
+// Default export for compatibility (some environments treat local .js modules as default-only).
+export default {
+  submitSignedDocument,
+  getDocumentsByUserId,
+};
