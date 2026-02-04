@@ -1,6 +1,6 @@
-const DOCUSEAL_API_URL = process.env.REACT_APP_DOCUSEAL_URL;
-const DOCUSEAL_API_KEY = process.env.REACT_APP_DOCUSEAL_KEY;
-const MAIL_API_URL = process.env.REACT_APP_MAIL_URL;
+const DOCUSEAL_API_URL = import.meta.env.VITE_DOCUSEAL_URL;
+const DOCUSEAL_API_KEY = import.meta.env.VITE_DOCUSEAL_KEY;
+const MAIL_API_URL = import.meta.env.VITE_MAIL_URL;
 
 const userName = sessionStorage.getItem("username");
 
