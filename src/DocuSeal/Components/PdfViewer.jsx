@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Document, pdfjs } from "react-pdf";
 import { useSignature, FIELD_TYPES } from "./SignatureContext";
 import SignPdf from "./SignPdf";
-import { Square, PenTool } from "lucide-react";
+import { Square, PenTool, Edit3, Calendar } from "lucide-react";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
@@ -24,7 +24,7 @@ if (typeof Promise !== "undefined" && !("withResolvers" in Promise)) {
 }
 
 export default function PdfViewer({ currentStep: propCurrentStep }) {
-  const { pdfFile, currentStep: contextCurrentStep, blocks } = useSignature();
+  const { pdfFile, currentStep: contextCurrentStep, blocks, activeFieldType, setActiveFieldType } = useSignature();
   const [numPages, setNumPages] = useState(0);
 
   const currentStep = propCurrentStep ?? contextCurrentStep;
@@ -57,6 +57,36 @@ export default function PdfViewer({ currentStep: propCurrentStep }) {
     return acc;
   }, {});
 
+  // Field type selector for Step 2
+  const FieldTypeSelector = () => {
+    if (currentStep !== 2) return null;
+    
+    const types = [
+      { type: FIELD_TYPES.SIGNATURE, label: "Signature", icon: <PenTool size={14} />, color: "emerald" },
+      { type: FIELD_TYPES.INITIAL, label: "Initial", icon: <Edit3 size={14} />, color: "purple" },
+      { type: FIELD_TYPES.DATE, label: "Date", icon: <Calendar size={14} />, color: "amber" },
+    ];
+
+    return (
+      <div className="flex items-center gap-2 mb-2">
+        {types.map(({ type, label, icon, color }) => (
+          <button
+            key={type}
+            onClick={() => setActiveFieldType(type)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all
+              ${activeFieldType === type 
+                ? `bg-${color}-500 text-white shadow-md` 
+                : `bg-${color}-50 text-${color}-700 hover:bg-${color}-100`
+              }`}
+          >
+            {icon}
+            {label}
+          </button>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="relative flex w-full max-h-[720px] flex-col items-center gap-3 overflow-auto rounded-lg bg-slate-100/70 p-3">
       {config && (
@@ -78,9 +108,9 @@ export default function PdfViewer({ currentStep: propCurrentStep }) {
                   {fieldCounts[FIELD_TYPES.SIGNATURE]} Sig
                 </span>
               )}
-              {fieldCounts[FIELD_TYPES.TEXT] > 0 && (
-                <span className="text-blue-600">
-                  {fieldCounts[FIELD_TYPES.TEXT]} Name
+              {fieldCounts[FIELD_TYPES.INITIAL] > 0 && (
+                <span className="text-purple-600">
+                  {fieldCounts[FIELD_TYPES.INITIAL]} Init
                 </span>
               )}
               {fieldCounts[FIELD_TYPES.DATE] > 0 && (
@@ -92,6 +122,9 @@ export default function PdfViewer({ currentStep: propCurrentStep }) {
           )}
         </div>
       )}
+
+      {/* Field type selector */}
+      <FieldTypeSelector />
 
       <Document
         file={pdfFile}
