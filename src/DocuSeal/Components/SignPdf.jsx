@@ -3,7 +3,7 @@ import { Page } from "react-pdf";
 import { Rnd } from "react-rnd";
 import SignatureCanvas from "react-signature-canvas";
 import { useSignature, FIELD_TYPES } from "./SignatureContext";
-import { X, PenTool, Type, Upload, User, Calendar } from "lucide-react";
+import { X, PenTool, Type, Upload, Calendar, Edit3 } from "lucide-react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 
 function cn(...classes) {
@@ -20,13 +20,13 @@ const fieldConfig = {
     textColor: "text-emerald-600",
     dashedBg: "bg-emerald-50/30",
   },
-  [FIELD_TYPES.TEXT]: {
-    label: "Full Name",
-    icon: User,
-    borderColor: "border-blue-500",
-    bgColor: "bg-blue-50/50",
-    textColor: "text-blue-600",
-    dashedBg: "bg-blue-50/30",
+  [FIELD_TYPES.INITIAL]: {
+    label: "Initial",
+    icon: Edit3,
+    borderColor: "border-purple-500",
+    bgColor: "bg-purple-50/50",
+    textColor: "text-purple-600",
+    dashedBg: "bg-purple-50/30",
   },
   [FIELD_TYPES.DATE]: {
     label: "Date",
@@ -126,19 +126,12 @@ export default function SignPdf({ pageNumber }) {
     reader.readAsDataURL(file);
   };
 
-  // Auto-fill text and date fields
+  // Handle field click for signing
   const handleBlockClick = (block) => {
     if (currentStep !== 4) return;
     if (signatures[block.id]) return;
 
-    if (block.fieldType === FIELD_TYPES.TEXT) {
-      // Auto-fill with signer name
-      const name = signerName || "Signer Name";
-      setSignatures((prev) => ({
-        ...prev,
-        [block.id]: name,
-      }));
-    } else if (block.fieldType === FIELD_TYPES.DATE) {
+    if (block.fieldType === FIELD_TYPES.DATE) {
       // Auto-fill with current date
       const today = new Date().toLocaleDateString("en-GB", {
         day: "2-digit",
@@ -150,7 +143,7 @@ export default function SignPdf({ pageNumber }) {
         [block.id]: today,
       }));
     } else {
-      // Signature - open modal
+      // Signature or Initial - open modal
       setActiveBlockId(block.id);
     }
   };
@@ -158,8 +151,8 @@ export default function SignPdf({ pageNumber }) {
   // Get default size based on field type
   const getDefaultSize = (fieldType) => {
     switch (fieldType) {
-      case FIELD_TYPES.TEXT:
-        return { width: 200, height: 30 };
+      case FIELD_TYPES.INITIAL:
+        return { width: 80, height: 50 };
       case FIELD_TYPES.DATE:
         return { width: 120, height: 30 };
       default:
@@ -309,10 +302,10 @@ export default function SignPdf({ pageNumber }) {
             )}
 
             {isSigned ? (
-              block.fieldType === FIELD_TYPES.SIGNATURE ? (
+              block.fieldType === FIELD_TYPES.SIGNATURE || block.fieldType === FIELD_TYPES.INITIAL ? (
                 <img
                   src={signatures[block.id]}
-                  alt="Signature"
+                  alt={block.fieldType === FIELD_TYPES.INITIAL ? "Initial" : "Signature"}
                   className="h-full w-full object-contain"
                 />
               ) : (
@@ -339,11 +332,13 @@ export default function SignPdf({ pageNumber }) {
         );
       })}
 
-      {activeBlockId && activeBlock?.fieldType === FIELD_TYPES.SIGNATURE && (
+      {activeBlockId && (activeBlock?.fieldType === FIELD_TYPES.SIGNATURE || activeBlock?.fieldType === FIELD_TYPES.INITIAL) && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-semibold">Add your signature</h3>
+              <h3 className="text-base font-semibold">
+                {activeBlock?.fieldType === FIELD_TYPES.INITIAL ? "Add your initials" : "Add your signature"}
+              </h3>
               <button onClick={resetModalState}>
                 <X className="h-5 w-5 text-slate-400 hover:text-slate-700" />
               </button>

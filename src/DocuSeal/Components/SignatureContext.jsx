@@ -2,10 +2,10 @@ import React, { createContext, useContext, useState } from 'react';
 
 const SignatureContext = createContext(null);
 
-// Field types supported by DocuSeal
+// Field types supported
 export const FIELD_TYPES = {
   SIGNATURE: 'signature',
-  TEXT: 'text',
+  INITIAL: 'initial',
   DATE: 'date',
 };
 
