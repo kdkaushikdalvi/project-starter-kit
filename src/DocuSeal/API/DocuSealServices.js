@@ -122,3 +122,42 @@ export async function sendMailLink({ to, token }) {
 
   return response.text();
 }
+
+export async function submitSignedDocument({ userId, fileName, pdfData, signedAt }) {
+  const response = await fetch(`${DOCUSEAL_API_URL}/documentSubmissions/signed`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Auth-Token": DOCUSEAL_API_KEY,
+    },
+    body: JSON.stringify({
+      userId,
+      fileName,
+      pdfData,
+      signedAt,
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err?.error || "Failed to submit signed document");
+  }
+
+  return response.json();
+}
+
+export async function getDocumentsByUserId(userId) {
+  const response = await fetch(`${DOCUSEAL_API_URL}/documentSubmissions/user/${userId}`, {
+    headers: {
+      "X-Auth-Token": DOCUSEAL_API_KEY,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err?.error || "Failed to fetch user documents");
+  }
+
+  return response.json();
+}
