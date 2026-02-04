@@ -1,5 +1,5 @@
 import { PenTool, User, Calendar } from "lucide-react";
-import { useSignature, FIELD_TYPES } from "../context/SignatureContext";
+import { useSignature, FIELD_TYPES } from "./SignatureContext";
 
 const fieldTypes = [
   {

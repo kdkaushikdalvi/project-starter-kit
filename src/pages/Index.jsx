@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useSignature } from "../context/SignatureContext";
+import { useSignature } from "../DocuSeal/Components/SignatureContext";
 import { FilePicker } from "../components/FilePicker";
-import PdfViewer from "../components/PdfViewer";
+import PdfViewer from "../DocuSeal/Components/PdfViewer";
 import { PDFDocument } from "pdf-lib";
 import { PenLine, ArrowRight, Check, Download, Mail, MousePointer } from "lucide-react";
 import { toast } from "react-toastify";
-import * as services from "../api/services.js";
+import * as services from "../DocuSeal/API/DocuSealServices";
 
 const submitSignedDocument =
   services.submitSignedDocument ?? services.default?.submitSignedDocument;

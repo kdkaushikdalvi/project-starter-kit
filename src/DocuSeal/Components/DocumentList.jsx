@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getAllDocument } from "../api/services.js";
+import { getAllDocument } from "../API/DocuSealServices";
 import Loader from "./Loader";
 import {
   Calendar,
