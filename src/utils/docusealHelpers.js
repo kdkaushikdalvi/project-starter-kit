@@ -18,7 +18,7 @@ export async function buildNormalizedFields(pdfFile, blocks) {
     // Map internal field types to DocuSeal types
     const fieldTypeMap = {
       [FIELD_TYPES.SIGNATURE]: "signature",
-      [FIELD_TYPES.TEXT]: "text",
+      [FIELD_TYPES.INITIAL]: "initials",
       [FIELD_TYPES.DATE]: "date",
     };
 
