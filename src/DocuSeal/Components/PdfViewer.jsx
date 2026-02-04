@@ -6,15 +6,10 @@ import { Square, PenTool, Edit3, Calendar } from "lucide-react";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url,
-).toString();
-
-if (typeof Promise !== "undefined" && !("withResolvers" in Promise)) {
+// Polyfill Promise.withResolvers for older browsers (must be before pdfjs)
+if (typeof Promise.withResolvers !== "function") {
   Promise.withResolvers = function () {
-    let resolve;
-    let reject;
+    let resolve, reject;
     const promise = new Promise((res, rej) => {
       resolve = res;
       reject = rej;
@@ -22,6 +17,11 @@ if (typeof Promise !== "undefined" && !("withResolvers" in Promise)) {
     return { promise, resolve, reject };
   };
 }
+
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.mjs",
+  import.meta.url,
+).toString();
 
 export default function PdfViewer({ currentStep: propCurrentStep }) {
   const { pdfFile, currentStep: contextCurrentStep, blocks, activeFieldType, setActiveFieldType } = useSignature();
