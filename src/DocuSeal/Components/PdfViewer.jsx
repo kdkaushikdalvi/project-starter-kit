@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Document, pdfjs } from "react-pdf";
 import { useSignature, FIELD_TYPES } from "./SignatureContext";
 import SignPdf from "./SignPdf";
-import FieldTypeSelector from "./FieldTypeSelector";
 import { Square, PenTool } from "lucide-react";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -60,9 +59,6 @@ export default function PdfViewer({ currentStep: propCurrentStep }) {
 
   return (
     <div className="relative flex w-full max-h-[720px] flex-col items-center gap-3 overflow-auto rounded-lg bg-slate-100/70 p-3">
-      {/* Field type selector for Step 2 */}
-      <FieldTypeSelector />
-
       {config && (
         <div className="sticky top-1 z-10 flex items-center gap-4">
           <div
