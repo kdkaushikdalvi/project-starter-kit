@@ -2,12 +2,21 @@ import React, { createContext, useContext, useState } from 'react';
 
 const SignatureContext = createContext(null);
 
+// Field types supported by DocuSeal
+export const FIELD_TYPES = {
+  SIGNATURE: 'signature',
+  TEXT: 'text',
+  DATE: 'date',
+};
+
 export function SignatureProvider({ children }) {
   const [pdfFile, setPdfFile] = useState(null);
   const [blocks, setBlocks] = useState([]);
   const [signatureImage, setSignatureImage] = useState(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [signatures, setSignatures] = useState({});
+  const [activeFieldType, setActiveFieldType] = useState(FIELD_TYPES.SIGNATURE);
+  const [signerName, setSignerName] = useState(''); // For full name field
 
   return (
     <SignatureContext.Provider
@@ -21,7 +30,12 @@ export function SignatureProvider({ children }) {
         currentStep,
         setCurrentStep,
         signatures,
-        setSignatures
+        setSignatures,
+        activeFieldType,
+        setActiveFieldType,
+        signerName,
+        setSignerName,
+        FIELD_TYPES,
       }}
     >
       {children}
