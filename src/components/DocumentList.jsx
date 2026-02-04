@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import * as services from "../api/services.js";
+import { getAllDocument } from "../api/services.js";
 import Loader from "./Loader";
 import {
   Calendar,
@@ -8,8 +8,6 @@ import {
   FileSignature,
   Eye,
 } from "lucide-react";
-
-const getAllDocument = services.getAllDocument ?? services.default?.getAllDocument;
 
 const LIMIT = 10;
 
