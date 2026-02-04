@@ -2,21 +2,56 @@ import { useRef, useState } from "react";
 import { Page } from "react-pdf";
 import { Rnd } from "react-rnd";
 import SignatureCanvas from "react-signature-canvas";
-import { useSignature } from "../context/SignatureContext";
-import { X, PenTool, Type, Upload } from "lucide-react";
+import { useSignature, FIELD_TYPES } from "../context/SignatureContext";
+import { X, PenTool, Type, Upload, User, Calendar } from "lucide-react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 
 function cn(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
+// Field type configurations
+const fieldConfig = {
+  [FIELD_TYPES.SIGNATURE]: {
+    label: "Signature",
+    icon: PenTool,
+    borderColor: "border-emerald-500",
+    bgColor: "bg-emerald-50/50",
+    textColor: "text-emerald-600",
+    dashedBg: "bg-emerald-50/30",
+  },
+  [FIELD_TYPES.TEXT]: {
+    label: "Full Name",
+    icon: User,
+    borderColor: "border-blue-500",
+    bgColor: "bg-blue-50/50",
+    textColor: "text-blue-600",
+    dashedBg: "bg-blue-50/30",
+  },
+  [FIELD_TYPES.DATE]: {
+    label: "Date",
+    icon: Calendar,
+    borderColor: "border-amber-500",
+    bgColor: "bg-amber-50/50",
+    textColor: "text-amber-600",
+    dashedBg: "bg-amber-50/30",
+  },
+};
+
 export default function SignPdf({ pageNumber }) {
   const containerRef = useRef(null);
   const signaturePadRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  const { blocks, setBlocks, currentStep, signatures, setSignatures } =
-    useSignature();
+  const {
+    blocks,
+    setBlocks,
+    currentStep,
+    signatures,
+    setSignatures,
+    activeFieldType,
+    signerName,
+  } = useSignature();
 
   const [draft, setDraft] = useState(null);
   const [activeBlockId, setActiveBlockId] = useState(null);
@@ -91,6 +126,49 @@ export default function SignPdf({ pageNumber }) {
     reader.readAsDataURL(file);
   };
 
+  // Auto-fill text and date fields
+  const handleBlockClick = (block) => {
+    if (currentStep !== 4) return;
+    if (signatures[block.id]) return;
+
+    if (block.fieldType === FIELD_TYPES.TEXT) {
+      // Auto-fill with signer name
+      const name = signerName || "Signer Name";
+      setSignatures((prev) => ({
+        ...prev,
+        [block.id]: name,
+      }));
+    } else if (block.fieldType === FIELD_TYPES.DATE) {
+      // Auto-fill with current date
+      const today = new Date().toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+      setSignatures((prev) => ({
+        ...prev,
+        [block.id]: today,
+      }));
+    } else {
+      // Signature - open modal
+      setActiveBlockId(block.id);
+    }
+  };
+
+  // Get default size based on field type
+  const getDefaultSize = (fieldType) => {
+    switch (fieldType) {
+      case FIELD_TYPES.TEXT:
+        return { width: 200, height: 30 };
+      case FIELD_TYPES.DATE:
+        return { width: 120, height: 30 };
+      default:
+        return { width: 150, height: 60 };
+    }
+  };
+
+  const activeBlock = blocks.find((b) => b.id === activeBlockId);
+
   return (
     <div
       ref={containerRef}
@@ -108,6 +186,7 @@ export default function SignPdf({ pageNumber }) {
           y: p.y,
           width: 0,
           height: 0,
+          fieldType: activeFieldType,
         });
       }}
       onMouseMove={(e) => {
@@ -122,10 +201,14 @@ export default function SignPdf({ pageNumber }) {
         });
       }}
       onMouseUp={() => {
-        if (!draft || draft.width < 20 || draft.height < 20) {
+        if (!draft) {
           setDraft(null);
           return;
         }
+
+        const defaultSize = getDefaultSize(draft.fieldType);
+        const width = draft.width < 20 ? defaultSize.width : draft.width;
+        const height = draft.height < 20 ? defaultSize.height : draft.height;
 
         setBlocks((prev) => [
           ...prev,
@@ -134,8 +217,10 @@ export default function SignPdf({ pageNumber }) {
             pageNumber,
             x: draft.x,
             y: draft.y,
-            width: draft.width,
-            height: draft.height,
+            width,
+            height,
+            fieldType: draft.fieldType,
+            required: true,
           },
         ]);
         setDraft(null);
@@ -149,96 +234,112 @@ export default function SignPdf({ pageNumber }) {
 
       {draft && (
         <div
-          className="absolute z-10 rounded-md border border-sky-500 bg-sky-500/10"
+          className={cn(
+            "absolute z-10 rounded-md border-2",
+            fieldConfig[draft.fieldType]?.borderColor || "border-sky-500",
+            fieldConfig[draft.fieldType]?.bgColor || "bg-sky-500/10",
+          )}
           style={{
             left: draft.x,
             top: draft.y,
-            width: draft.width,
-            height: draft.height,
+            width: Math.max(draft.width, 20),
+            height: Math.max(draft.height, 20),
           }}
         />
       )}
 
-      {pageBlocks.map((block) => (
-        <Rnd
-          key={block.id}
-          bounds="parent"
-          disableDragging={currentStep !== 2}
-          enableResizing={currentStep === 2}
-          size={{ width: block.width, height: block.height }}
-          position={{ x: block.x, y: block.y }}
-          onDragStop={(e, d) =>
-            setBlocks((prev) =>
-              prev.map((b) =>
-                b.id === block.id ? { ...b, x: d.x, y: d.y } : b,
-              ),
-            )
-          }
-          onResizeStop={(e, dir, ref, delta, pos) =>
-            setBlocks((prev) =>
-              prev.map((b) =>
-                b.id === block.id
-                  ? {
-                      ...b,
-                      width: ref.offsetWidth,
-                      height: ref.offsetHeight,
-                      x: pos.x,
-                      y: pos.y,
-                    }
-                  : b,
-              ),
-            )
-          }
-          className={cn(
-            "group relative z-20 rounded-lg transition-all",
-            currentStep === 2
-              ? "border-2 border-emerald-500 bg-emerald-50/50"
-              : signatures[block.id]
-                ? "border-transparent"
-                : "border-2 border-dashed border-emerald-500 bg-emerald-50/30 hover:bg-emerald-50 cursor-pointer",
-          )}
-          onClick={() => {
-            if (currentStep === 4 && !signatures[block.id]) {
-              setActiveBlockId(block.id);
+      {pageBlocks.map((block) => {
+        const config = fieldConfig[block.fieldType] || fieldConfig[FIELD_TYPES.SIGNATURE];
+        const Icon = config.icon;
+        const isSigned = !!signatures[block.id];
+
+        return (
+          <Rnd
+            key={block.id}
+            bounds="parent"
+            disableDragging={currentStep !== 2}
+            enableResizing={currentStep === 2}
+            size={{ width: block.width, height: block.height }}
+            position={{ x: block.x, y: block.y }}
+            onDragStop={(e, d) =>
+              setBlocks((prev) =>
+                prev.map((b) =>
+                  b.id === block.id ? { ...b, x: d.x, y: d.y } : b,
+                ),
+              )
             }
-          }}
-          style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
-        >
-          {currentStep === 2 && (
-            <button
-              onClick={() =>
-                setBlocks((prev) => prev.filter((b) => b.id !== block.id))
-              }
-              className="absolute -top-3 -right-3 hidden h-6 w-6 items-center justify-center
-                rounded-full border border-red-200 bg-white text-red-500 shadow-sm
-                hover:bg-red-50 group-hover:flex"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
-
-          {signatures[block.id] ? (
-            <img
-              src={signatures[block.id]}
-              alt="Signature"
-              className="h-full w-full object-contain"
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span
-                className={cn(
-                  "pointer-events-none select-none px-2 text-center text-xs font-semibold",
-                  currentStep === 2 ? "text-emerald-600" : "text-red-600",
-                )}
+            onResizeStop={(e, dir, ref, delta, pos) =>
+              setBlocks((prev) =>
+                prev.map((b) =>
+                  b.id === block.id
+                    ? {
+                        ...b,
+                        width: ref.offsetWidth,
+                        height: ref.offsetHeight,
+                        x: pos.x,
+                        y: pos.y,
+                      }
+                    : b,
+                ),
+              )
+            }
+            className={cn(
+              "group relative z-20 rounded-lg transition-all",
+              currentStep === 2
+                ? `border-2 ${config.borderColor} ${config.bgColor}`
+                : isSigned
+                  ? "border border-slate-200 bg-white"
+                  : `border-2 border-dashed ${config.borderColor} ${config.dashedBg} hover:opacity-80 cursor-pointer`,
+            )}
+            onClick={() => handleBlockClick(block)}
+            style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}
+          >
+            {currentStep === 2 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setBlocks((prev) => prev.filter((b) => b.id !== block.id));
+                }}
+                className="absolute -top-3 -right-3 flex h-6 w-6 items-center justify-center
+                  rounded-full border border-red-200 bg-white text-red-500 shadow-sm
+                  hover:bg-red-50"
               >
-                {currentStep === 2 ? "Signature area" : "Click to sign"}
-              </span>
-            </div>
-          )}
-        </Rnd>
-      ))}
+                <X className="h-4 w-4" />
+              </button>
+            )}
 
-      {activeBlockId && (
+            {isSigned ? (
+              block.fieldType === FIELD_TYPES.SIGNATURE ? (
+                <img
+                  src={signatures[block.id]}
+                  alt="Signature"
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center px-2">
+                  <span className={cn("text-sm font-semibold", config.textColor)}>
+                    {signatures[block.id]}
+                  </span>
+                </div>
+              )
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center gap-1">
+                <Icon size={14} className={config.textColor} />
+                <span
+                  className={cn(
+                    "pointer-events-none select-none text-xs font-semibold",
+                    currentStep === 2 ? config.textColor : "text-red-600",
+                  )}
+                >
+                  {currentStep === 2 ? config.label : `Click to add ${config.label.toLowerCase()}`}
+                </span>
+              </div>
+            )}
+          </Rnd>
+        );
+      })}
+
+      {activeBlockId && activeBlock?.fieldType === FIELD_TYPES.SIGNATURE && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-xl animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between mb-4">
@@ -333,7 +434,7 @@ export default function SignPdf({ pageNumber }) {
                     Upload signature image
                   </button>
                 ) : (
-                  <img src={uploadedImage} className="mx-auto mb-4 max-h-32" />
+                  <img src={uploadedImage} className="mx-auto mb-4 max-h-32" alt="Uploaded signature" />
                 )}
                 <div className="flex justify-end gap-3">
                   <button
