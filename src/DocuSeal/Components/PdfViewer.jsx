@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Document, pdfjs } from "react-pdf";
-import { useSignature, FIELD_TYPES } from "../context/SignatureContext";
+import { useSignature, FIELD_TYPES } from "./SignatureContext";
 import SignPdf from "./SignPdf";
 import FieldTypeSelector from "./FieldTypeSelector";
 import { Square, PenTool } from "lucide-react";

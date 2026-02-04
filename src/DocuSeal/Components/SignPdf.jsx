@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Page } from "react-pdf";
 import { Rnd } from "react-rnd";
 import SignatureCanvas from "react-signature-canvas";
-import { useSignature, FIELD_TYPES } from "../context/SignatureContext";
+import { useSignature, FIELD_TYPES } from "./SignatureContext";
 import { X, PenTool, Type, Upload, User, Calendar } from "lucide-react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 
