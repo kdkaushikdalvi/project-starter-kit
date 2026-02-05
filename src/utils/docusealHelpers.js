@@ -1,5 +1,5 @@
 import { PDFDocument } from "pdf-lib";
-import { FIELD_TYPES } from "../context/SignatureContext";
+import { FIELD_TYPES } from "../DocuSeal/Components/SignatureContext";
 
 /**
  * Build normalized fields for DocuSeal API submission
