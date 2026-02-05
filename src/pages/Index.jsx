@@ -3,6 +3,7 @@ import { useSignature } from "../DocuSeal/Components/SignatureContext";
 import { FilePicker } from "../components/FilePicker";
 import PdfViewer from "../DocuSeal/Components/PdfViewer";
 import { PDFDocument } from "pdf-lib";
+import { rgb, StandardFonts } from "pdf-lib";
 import { PenLine, ArrowRight, Check, Download, Mail, MousePointer } from "lucide-react";
 import { toast } from "react-toastify";
 import * as services from "../DocuSeal/API/DocuSealServices";
@@ -53,11 +54,23 @@ export default function Home() {
         const signatureDataUrl = signatures[block.id];
         if (!signatureDataUrl) continue;
         
-        // Skip date fields - they are text, not images
-        if (block.fieldType === "date") continue;
-
         const page = pages[block.pageNumber - 1];
         const { width, height } = page.getSize();
+        const scale = width / 612;
+
+        // Handle date fields as text
+        if (block.fieldType === "date") {
+          const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+          const fontSize = Math.min(block.height * scale * 0.6, 14);
+          page.drawText(signatureDataUrl, {
+            x: block.x * scale + 4,
+            y: height - (block.y + block.height * 0.7) * scale,
+            size: fontSize,
+            font,
+            color: rgb(0, 0, 0),
+          });
+          continue;
+        }
 
         const signatureImageBytes = await fetch(signatureDataUrl).then((r) => r.arrayBuffer());
         
@@ -84,8 +97,6 @@ export default function Home() {
           const pngBytes = await fetch(pngDataUrl).then((r) => r.arrayBuffer());
           signatureImage = await pdfDoc.embedPng(pngBytes);
         }
-
-        const scale = width / 612;
 
         page.drawImage(signatureImage, {
           x: block.x * scale,
