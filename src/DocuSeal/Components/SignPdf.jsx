@@ -80,6 +80,7 @@ export default function SignPdf({ pageNumber }) {
     setSignatures((prev) => ({
       ...prev,
       [activeBlockId]: signaturePadRef.current.toDataURL(),
+      [activeBlockId]: signaturePadRef.current.toDataURL("image/png"),
     }));
     resetModalState();
   };
@@ -102,7 +103,7 @@ export default function SignPdf({ pageNumber }) {
 
     setSignatures((prev) => ({
       ...prev,
-      [activeBlockId]: canvas.toDataURL(),
+      [activeBlockId]: canvas.toDataURL("image/png"),
     }));
 
     resetModalState();
