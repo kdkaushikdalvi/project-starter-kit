@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Document, pdfjs } from "react-pdf";
 import { useSignature, FIELD_TYPES } from "./SignatureContext";
 import SignPdf from "./SignPdf";
-import { Square, PenTool, Edit3, Calendar } from "lucide-react";
+import { PenTool, Edit3, Calendar } from "lucide-react";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
@@ -31,25 +31,6 @@ export default function PdfViewer({ currentStep: propCurrentStep }) {
 
   if (!pdfFile) return null;
 
-  const stepConfig = {
-    2: {
-      message: "Draw to place fields",
-      bg: "bg-blue-50/70",
-      text: "text-blue-700",
-      dot: "bg-blue-500",
-      icon: <Square size={12} />,
-    },
-    4: {
-      message: "Click fields to sign",
-      bg: "bg-emerald-50/70",
-      text: "text-emerald-700",
-      dot: "bg-emerald-500",
-      icon: <PenTool size={12} />,
-    },
-  };
-
-  const config = stepConfig[currentStep];
-
   // Count fields by type
   const fieldCounts = blocks.reduce((acc, block) => {
     const type = block.fieldType || FIELD_TYPES.SIGNATURE;
@@ -57,94 +38,70 @@ export default function PdfViewer({ currentStep: propCurrentStep }) {
     return acc;
   }, {});
 
-  // Field type selector for Step 2
-  const FieldTypeSelector = () => {
-    if (currentStep !== 2) return null;
-    
-    const types = [
-      { type: FIELD_TYPES.SIGNATURE, label: "Signature", icon: <PenTool size={14} />, color: "emerald" },
-      { type: FIELD_TYPES.INITIAL, label: "Initial", icon: <Edit3 size={14} />, color: "purple" },
-      { type: FIELD_TYPES.DATE, label: "Date", icon: <Calendar size={14} />, color: "amber" },
-    ];
-
-    return (
-      <div className="flex items-center gap-2 mb-2">
-        {types.map(({ type, label, icon, color }) => (
-          <button
-            key={type}
-            onClick={() => setActiveFieldType(type)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all
-              ${activeFieldType === type 
-                ? `bg-${color}-500 text-white shadow-md` 
-                : `bg-${color}-50 text-${color}-700 hover:bg-${color}-100`
-              }`}
-          >
-            {icon}
-            {label}
-          </button>
-        ))}
-      </div>
-    );
-  };
+  const fieldTypes = [
+    { type: FIELD_TYPES.SIGNATURE, label: "Signature", icon: <PenTool size={14} />, activeClass: "bg-emerald-500 text-white shadow-md", inactiveClass: "bg-emerald-50 text-emerald-700 hover:bg-emerald-100" },
+    { type: FIELD_TYPES.INITIAL, label: "Initial", icon: <Edit3 size={14} />, activeClass: "bg-purple-500 text-white shadow-md", inactiveClass: "bg-purple-50 text-purple-700 hover:bg-purple-100" },
+    { type: FIELD_TYPES.DATE, label: "Date", icon: <Calendar size={14} />, activeClass: "bg-amber-500 text-white shadow-md", inactiveClass: "bg-amber-50 text-amber-700 hover:bg-amber-100" },
+  ];
 
   return (
-    <div className="relative flex w-full max-h-[720px] flex-col items-center gap-3 overflow-auto rounded-lg bg-slate-100/70 p-3">
-      {config && (
-        <div className="sticky top-1 z-10 flex items-center gap-4">
-          <div
-            className={`flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium shadow-sm backdrop-blur
-              ${config.bg} ${config.text}`}
-          >
-            <span>{config.icon}</span>
-            <span className={`h-1.5 w-1.5 rounded-full ${config.dot}`} />
-            <span>{config.message}</span>
+    <div className="relative flex w-full flex-col items-center gap-3">
+      {/* Sticky field type selector - outside scroll */}
+      {currentStep === 2 && (
+        <div className="sticky top-0 z-20 flex items-center justify-center gap-3 rounded-lg bg-white/95 px-4 py-2 shadow-sm backdrop-blur w-full">
+          <div className="flex items-center gap-2">
+            {fieldTypes.map(({ type, label, icon, activeClass, inactiveClass }) => (
+              <button
+                key={type}
+                onClick={() => setActiveFieldType(type)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all
+                  ${activeFieldType === type ? activeClass : inactiveClass}`}
+              >
+                {icon}
+                {label}
+              </button>
+            ))}
           </div>
-
-          {/* Field counts badge */}
-          {currentStep === 2 && blocks.length > 0 && (
-            <div className="flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-medium shadow-sm backdrop-blur">
+          
+          {/* Field counts */}
+          {blocks.length > 0 && (
+            <div className="flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium">
               {fieldCounts[FIELD_TYPES.SIGNATURE] > 0 && (
-                <span className="text-emerald-600">
-                  {fieldCounts[FIELD_TYPES.SIGNATURE]} Sig
-                </span>
+                <span className="text-emerald-600">{fieldCounts[FIELD_TYPES.SIGNATURE]} Sig</span>
               )}
               {fieldCounts[FIELD_TYPES.INITIAL] > 0 && (
-                <span className="text-purple-600">
-                  {fieldCounts[FIELD_TYPES.INITIAL]} Init
-                </span>
+                <span className="text-purple-600">{fieldCounts[FIELD_TYPES.INITIAL]} Init</span>
               )}
               {fieldCounts[FIELD_TYPES.DATE] > 0 && (
-                <span className="text-amber-600">
-                  {fieldCounts[FIELD_TYPES.DATE]} Date
-                </span>
+                <span className="text-amber-600">{fieldCounts[FIELD_TYPES.DATE]} Date</span>
               )}
             </div>
           )}
         </div>
       )}
 
-      {/* Field type selector */}
-      <FieldTypeSelector />
-
-      <Document
-        file={pdfFile}
-        onLoadSuccess={(doc) => setNumPages(doc.numPages)}
-        className="flex flex-col gap-6"
-        loading={
-          <div className="flex items-center justify-center p-12">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-300 border-t-indigo-600" />
-          </div>
-        }
-      >
-        {Array.from({ length: numPages }).map((_, index) => (
-          <div
-            key={index}
-            className="overflow-hidden rounded-md bg-white shadow-md"
-          >
-            <SignPdf pageNumber={index + 1} />
-          </div>
-        ))}
-      </Document>
+      {/* Scrollable PDF container */}
+      <div className="w-full max-h-[680px] overflow-auto rounded-lg bg-slate-100/70 p-3">
+        <Document
+          file={pdfFile}
+          onLoadSuccess={(doc) => setNumPages(doc.numPages)}
+          className="flex flex-col gap-6"
+          loading={
+            <div className="flex items-center justify-center p-12">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-300 border-t-indigo-600" />
+            </div>
+          }
+        >
+          {Array.from({ length: numPages }).map((_, index) => (
+            <div
+              key={index}
+              className="overflow-hidden rounded-md bg-white shadow-md"
+            >
+              <SignPdf pageNumber={index + 1} />
+            </div>
+          ))}
+        </Document>
+      </div>
     </div>
   );
 }
