@@ -52,12 +52,38 @@ export default function Home() {
       for (const block of blocks) {
         const signatureDataUrl = signatures[block.id];
         if (!signatureDataUrl) continue;
+        
+        // Skip date fields - they are text, not images
+        if (block.fieldType === "date") continue;
 
         const page = pages[block.pageNumber - 1];
         const { width, height } = page.getSize();
 
         const signatureImageBytes = await fetch(signatureDataUrl).then((r) => r.arrayBuffer());
-        const signatureImage = await pdfDoc.embedPng(signatureImageBytes);
+        
+        // Detect image format and embed appropriately
+        let signatureImage;
+        if (signatureDataUrl.startsWith("data:image/png")) {
+          signatureImage = await pdfDoc.embedPng(signatureImageBytes);
+        } else if (signatureDataUrl.startsWith("data:image/jpeg") || signatureDataUrl.startsWith("data:image/jpg")) {
+          signatureImage = await pdfDoc.embedJpg(signatureImageBytes);
+        } else {
+          // Convert to PNG via canvas for other formats
+          const img = new Image();
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = signatureDataUrl;
+          });
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0);
+          const pngDataUrl = canvas.toDataURL("image/png");
+          const pngBytes = await fetch(pngDataUrl).then((r) => r.arrayBuffer());
+          signatureImage = await pdfDoc.embedPng(pngBytes);
+        }
 
         const scale = width / 612;
 
